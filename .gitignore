@@ -1,0 +1,12 @@
+__pycache__/
+app/png/*
+.idea/
+.vs/
+.ipynb_checkpoints/
+dataSets/
+test_dir/
+hp_dir/
+*.keras
+*.csv
+*.xls
+*.pdf
