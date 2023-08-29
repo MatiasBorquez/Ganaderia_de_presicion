@@ -1,6 +1,7 @@
 import numpy as np
 import seaborn as sns
 from PyQt5.QtGui import QIcon
+import pandas as pd
 
 import TratamientoCSV
 
@@ -68,7 +69,8 @@ class Grafica_Temp_c_a_bpa(FigureCanvasQTAgg):
         ejes = figure.add_subplot(111)
 
         # Dibujar los datos en los ejes
-        x = df['Fecha'].dt.strftime('%d/%m/%Y')
+        df['Fecha'] = pd.to_datetime(df['Fecha'])
+        x = df['Fecha'].dt.strftime('%Y-%m-%d')
         y = df["Temperatura_Ambiente"]
         sns.boxplot(x=x, y=y, width=0.5, ax=ejes)
         sns.stripplot(x=x, y=y, data=df, size=4, color=".3", linewidth=0, ax=ejes)
@@ -89,8 +91,9 @@ class Grafica_Temp_c_a_bpc(FigureCanvasQTAgg):
         # Crear un objeto de ejes
         ejes = figure.add_subplot(111)
 
-        x = df['Fecha'].dt.strftime('%d/%m/%Y')
-        y = df["Temperatura_Corporal"]
+        df['Fecha'] = pd.to_datetime(df['Fecha'])
+        x = df['Fecha'].dt.strftime('%Y-%m-%d')
+        y = df['Temperatura_Corporal']
         sns.boxplot(x=x, y=y, width=0.5)
         sns.stripplot(x=x, y=y, data=df, size=4, color=".3", linewidth=0)
         ejes.set_ylabel("Temperatura Corporal")
@@ -106,7 +109,7 @@ class Aplicacion(QMainWindow):
         self.setMinimumSize(800, 600)
         self.setMaximumSize(1920, 1080)
         self.showMaximized()
-
+        self.setStyleSheet("background-color: lightgray;")
         self.grafico = Grafica_Temp_c_a(df)
 
         # Boton Cambiar grafico

@@ -9,12 +9,78 @@ from PyQt5.QtCore import Qt
 from PyQt5 import QtWebEngineWidgets
 import folium
 from folium import plugins
-from platformdirs import windows
 
 import TratamientoCSV
 import Tabla
 import Grafico
 
+estilo ="""
+QWidget{
+background-color: rgb(50, 50, 50);
+}
+QWidget#orden_widget{
+border: 3px solid white;
+}
+QLabel#titulo{
+color: white;
+}
+QPushButton{
+background-color: rgb(200, 200, 200);
+border: 2px solid white;
+border-radius: 15px;
+padding: 5px;
+color: black;
+}
+QPushButton:hover{
+background-color: rgb(255, 255, 255);
+}
+QPushButton:pressed{
+background: white;
+}
+QGroupBox{
+color: black;
+font-weight: bold;
+font-size: 15px;
+}
+QMenuBar{
+background-color: rgb(200, 200, 200);
+border: 2px solid white;
+padding: 5px;
+color: black;
+}
+QMenuBar:pressed{
+background: white;
+}
+QMenu::item:selected {
+background-color: white;
+}
+QComboBox {
+    background-color: rgb(250, 250, 250);
+    border: 2px solid white;
+    border-radius: 10px;
+    padding: 5px;
+    color: black;
+}
+QComboBox::down-arrow {
+    width: 5px;
+    height: 5px;
+    top: 2px;
+    right: 2px;
+}
+QComboBox QAbstractItemView {
+    background-color: rgb(250, 250, 250);
+    color: rgb(0, 0, 0);
+    selection-background-color: rgb(150, 150, 150);
+    selection-color: rgb(255, 255, 255);
+}
+QMessageBox{
+background-color: rgb(200, 200, 200);
+}
+QMessageBox QLabel {
+color: rgb(0, 0, 0);
+background-color: rgb(200, 200, 200);
+}
+"""
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -68,13 +134,13 @@ class MainWindow(QMainWindow):
         self.btn_abrir.setIcon(QIcon("./png/folder.png"))
         self.btn_abrir.clicked.connect(self.abrir_archivos)
 
-        # Boton rotar 180
-        self.btn_tabla = QPushButton("Mostrar Tablas", self)
+        # Boton Para Mostrar todos los datos
+        self.btn_tabla = QPushButton("Mostrar Datos", self)
         self.btn_tabla.setFixedSize(120, 50)
         self.btn_tabla.setIcon(QIcon("./png/table.png"))
         self.btn_tabla.clicked.connect(self.ver_tabla)
 
-        # Boton rotar Horizontal
+        # Boton Para graficos
         self.btn_grafico = QPushButton("Ver Graficos", self)
         self.btn_grafico.setFixedSize(120, 50)
         self.btn_grafico.setIcon(QIcon("./png/stadistic.png"))
@@ -82,6 +148,7 @@ class MainWindow(QMainWindow):
 
         # Boton Cambiar mapa
         self.cobox_mapa = QComboBox(self)
+        self.cobox_mapa.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.cobox_mapa.addItems(["Heap Map", "Marcadores"])
         self.cobox_mapa.setFixedSize(120, 50)
         self.btn_ok = QPushButton("Ok", self)
@@ -123,6 +190,13 @@ class MainWindow(QMainWindow):
 
         _, temp_map_file = tempfile.mkstemp(suffix='.html')
         mapa.save(temp_map_file)
+        with open(temp_map_file, 'r+') as f:
+            html = f.read()
+            html = html.replace('<head>',
+                                '<head><style>body {border: px solid gray; border-radius: 15px; padding: 5px; color: black;}</style>')
+            f.seek(0)
+            f.write(html)
+            f.truncate()
         self.view.load(QUrl.fromLocalFile(os.path.abspath(temp_map_file)))
 
     def abrir_archivos(self):
@@ -132,9 +206,10 @@ class MainWindow(QMainWindow):
                 self.df = TratamientoCSV.Limpieza(nombre)
                 self.cambiar_mapa()
             else:
-                QMessageBox(self, "Error", "No se pudo abrir el archivo", QMessageBox.Ok)
+                QMessageBox.critical(self, "Error", "No se pudo abrir el archivo")
         except FileNotFoundError:
-            print("Archivo no seleccionado")
+            QMessageBox.critical(self, "Error", "Error en proceso de abrir Archivo")
+
 
     def cambiar_mapa(self):
         try:
@@ -142,11 +217,24 @@ class MainWindow(QMainWindow):
                 mapa = self.mostrar_head_map()
                 _, temp_map_file = tempfile.mkstemp(suffix='.html')
                 mapa.save(temp_map_file)
+                with open(temp_map_file, 'r+') as f:
+                    html = f.read()
+                    html = html.replace('<head>', '<head><style>body {border: 5px solid gray; border-radius: 15px; padding: 5px; color: black;}</style>')
+                    f.seek(0)
+                    f.write(html)
+                    f.truncate()
                 self.view.load(QUrl.fromLocalFile(os.path.abspath(temp_map_file)))
+
             else:
                 mapa = self.mostrar_marcadores()
                 _, temp_map_file = tempfile.mkstemp(suffix='.html')
                 mapa.save(temp_map_file)
+                with open(temp_map_file, 'r+') as f:
+                    html = f.read()
+                    html = html.replace('<head>', '<head><style>body {border: 5px solid gray; border-radius: 15px; padding: 5px; color: black;}</style>')
+                    f.seek(0)
+                    f.write(html)
+                    f.truncate()
                 self.view.load(QUrl.fromLocalFile(os.path.abspath(temp_map_file)))
         except:
             QMessageBox.information(self, "Error", "")
@@ -209,6 +297,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication([])
+    app.setStyleSheet(estilo)
     translator = QTranslator()
     if translator.load("es.qm"):
         app.installTranslator(translator)
