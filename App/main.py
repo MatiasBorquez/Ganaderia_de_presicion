@@ -121,9 +121,11 @@ class MainWindow(QMainWindow):
         about_act = QAction(QIcon("about.png"), "Ayuda", self)
         about_act.triggered.connect(self.about_dialog)
 
+        # Creacion del menu bar
         menu_bar = self.menuBar()
         # menu_bar.setNativeMenuBar(False)
         file_menu = menu_bar.addMenu("Archivo")
+        # agregar los botones dentro del menu bar
         file_menu.addAction(open_act)
         file_menu.addAction(save_act)
         file_menu.addSeparator()
@@ -170,17 +172,23 @@ class MainWindow(QMainWindow):
         self.btn_exit.setIcon(QIcon("./png/close.png"))
         self.btn_exit.clicked.connect(self.close)
 
+        # QWebEngineView se utiliza para mostrar el mapa del folium
         self.view = QtWebEngineWidgets.QWebEngineView()
         self.view.setContentsMargins(50, 50, 50, 50)
 
+        # se crea un widget central y se establece como el widget central de la ventana principal.
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         lay = QHBoxLayout(central_widget)
 
+        # Se crea un contenedor de botones y se agrega un diseño vertical al contenedor de botones.
         button_container = QWidget()
         vlay = QVBoxLayout(button_container)
+        # El diseño vertical se le establece un espaciado de 20 píxeles entre los elementos
         vlay.setSpacing(20)
+        # Se agrega un estiramiento al principio y al final del diseño vertical para empujar los widgets hacia el centro.
         vlay.addStretch()
+        # se agregan los botones y un cuadro combinado al diseño vertical.
         vlay.addWidget(self.btn_abrir)
         vlay.addWidget(self.btn_tabla)
         vlay.addWidget(self.btn_grafico)
@@ -188,110 +196,158 @@ class MainWindow(QMainWindow):
         vlay.addWidget(self.btn_ok)
         vlay.addWidget(self.btn_exit)
         vlay.addStretch()
+        # El contenedor de botones se agrega al diseño horizontal.
         lay.addWidget(button_container)
         lay.addWidget(self.view, stretch=1)
 
         # name, ext = QFileDialog.getOpenFileName(self, "Abrir Archivo", "", "CSV (*.csv);; Exel (*.xls)")
+        # Se llama a la funcion que va a trata los datos a mostrarse por defecto
         self.df = TratamientoCSV.Limpieza()
 
-        mapa = self.mostrar_head_map()
+        # Llamo a la funcion que crear head map y lo guardo en la variable mapa
+        mapa = self.crear_head_map()
 
+        #  crea un archivo temporal con la extensión .html
         _, temp_map_file = tempfile.mkstemp(suffix='.html')
+        # guarda el mapa en el archivo temporal utilizando el método save() del objeto.
         mapa.save(temp_map_file)
+        #  abre el archivo temporal en modo de lectura y escritura y lee su contenido en una variable html
         with open(temp_map_file, 'r+') as f:
             html = f.read()
+            # reemplaza la etiqueta <head> con una etiqueta <head> que contiene una etiqueta <style> para agregar estilos CSS al contenido HTML
             html = html.replace('<head>',
-                                '<head><style>body {border: px solid gray; border-radius: 15px; padding: 5px; color: black;}</style>')
+                                '<head><style>body {border: px solid gray; border-radius: 15px; padding: 10px; color: black;}</style>')
+            # mueve el puntero del archivo al principio del archivo y escribe el contenido modificado de html en el archivo
             f.seek(0)
             f.write(html)
+            #  trunca el archivo para eliminar cualquier contenido adicional y carga el archivo temporal en una vista QWebEngineView
+            #  utilizando el método load() y la clase QUrl.fromLocalFile()
             f.truncate()
         self.view.load(QUrl.fromLocalFile(os.path.abspath(temp_map_file)))
 
+    # Funcion para abrir los el archivo a tratar
     def abrir_archivos(self):
         try:
+            # Abre un cuadro de dialogo donde el usuario va a podes seleccionar el archivo de interes, ya sea exel o csv
             nombre, _ = QFileDialog.getOpenFileName(self, "Abrir Documento", "", "Exel (*.xls);; CSV (*.csv)")
+            # Verifica si se devuelve un archivo o no se selecciono nada
             if nombre:
+                # Llama a la funcion que tratara los datos para poderlos mostrar
                 self.df = TratamientoCSV.Limpieza(nombre)
+                # Mostramos el nuevo mapa
                 self.cambiar_mapa()
             else:
                 QMessageBox.critical(self, "Error", "No se pudo abrir el archivo")
         except FileNotFoundError:
             QMessageBox.critical(self, "Error", "Error en proceso de abrir Archivo")
 
-
+    # cambia el mapa mostrado en una vista QWebEngineView
     def cambiar_mapa(self):
         try:
+            # verifica el texto actual del cobox_mapa, si es Head Map y se va al else si es marcadores
             if self.cobox_mapa.currentText() == "Heap Map":
-                mapa = self.mostrar_head_map()
+                # Crea nuevo mapa head map
+                mapa = self.crear_head_map()
+                # Guarda mapa en una extencion temporal html
                 _, temp_map_file = tempfile.mkstemp(suffix='.html')
                 mapa.save(temp_map_file)
+                #  abre el archivo temporal en modo de lectura y escritura y lee su contenido en una variable html
                 with open(temp_map_file, 'r+') as f:
                     html = f.read()
-                    html = html.replace('<head>', '<head><style>body {border: 5px solid gray; border-radius: 15px; padding: 5px; color: black;}</style>')
+                    # reemplaza la etiqueta <head> con una etiqueta <head> que contiene una etiqueta <style> para agregar estilos CSS al contenido HTML
+                    html = html.replace('<head>',
+                                        '<head><style>body {border: px solid gray; border-radius: 15px; padding: 10px; color: black;}</style>')
+                    # mueve el puntero del archivo al principio del archivo y escribe el contenido modificado de html en el archivo
                     f.seek(0)
                     f.write(html)
+                    #  trunca el archivo para eliminar cualquier contenido adicional y carga el archivo temporal en una vista QWebEngineView
+                    #  utilizando el método load() y la clase QUrl.fromLocalFile()
                     f.truncate()
                 self.view.load(QUrl.fromLocalFile(os.path.abspath(temp_map_file)))
 
             else:
-                mapa = self.mostrar_marcadores()
+                # Crea nuevo mapa marcadores
+                mapa = self.crear_marcadores()
+                # Guarda mapa en una extencion temporal html
                 _, temp_map_file = tempfile.mkstemp(suffix='.html')
                 mapa.save(temp_map_file)
+                #  abre el archivo temporal en modo de lectura y escritura y lee su contenido en una variable html
                 with open(temp_map_file, 'r+') as f:
                     html = f.read()
-                    html = html.replace('<head>', '<head><style>body {border: 5px solid gray; border-radius: 15px; padding: 5px; color: black;}</style>')
+                    # reemplaza la etiqueta <head> con una etiqueta <head> que contiene una etiqueta <style> para agregar estilos CSS al contenido HTML
+                    html = html.replace('<head>',
+                                        '<head><style>body {border: px solid gray; border-radius: 15px; padding: 10px; color: black;}</style>')
+                    # mueve el puntero del archivo al principio del archivo y escribe el contenido modificado de html en el archivo
                     f.seek(0)
                     f.write(html)
+                    #  trunca el archivo para eliminar cualquier contenido adicional y carga el archivo temporal en una vista QWebEngineView
+                    #  utilizando el método load() y la clase QUrl.fromLocalFile()
                     f.truncate()
                 self.view.load(QUrl.fromLocalFile(os.path.abspath(temp_map_file)))
         except:
             QMessageBox.information(self, "Error", "")
 
     def ver_tabla(self):
+        # Crea una nueva tabla de datos
         self.new_tabla = Tabla.Tabla(self.df)
+        # Muestra en una nueva ventana
         self.new_tabla.show()
 
     def ver_grafico(self):
+        # Crea una nueva ventana de graficos
         self.new_grafico = Grafico.Aplicacion(self.df)
         self.new_grafico.show()
 
-    def mostrar_marcadores(self):
+    # Funcion para crear una mapa de marcadores de la localizacion del animal
+    def crear_marcadores(self):
+        # Creo una nueva columna cantidad al dataframe que contiene el recuento de filas agrupadas por las columnas latitud y longitud
         self.df['cantidad'] = self.df.groupby(['Latitud', 'Longitud'])['Latitud'].transform('count')
-
+        # creo un objeto de mapa centrado en la media de las coordenadas de latitud y longitud del dataframe y con un nivel de zoom inicial de 13.
         mapa = folium.Map(location=[self.df['Latitud'].mean(), self.df['Longitud'].mean()], zoom_start=13, prefer_canvas=True)
-
+        # Se agrega una capa de mosaico de "google satellite" al mapa utilizando la clase folium.TileLayer
         folium.TileLayer(tiles='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', attr='Google',
                          name='Google Satellite', max_zoom=20,
                          subdomains=['mt0', 'mt1', 'mt2', 'mt3']).add_to(mapa)
 
-        # Añadir marcadores para cada ubicación
+        # Añadir marcadores para cada ubicación, mediante un bucle
         for i, row in self.df.iterrows():
             folium.Marker([row['Latitud'], row['Longitud']],
-                          popup=f"Humedad: {row['Humedad']:.2f}\nFecha: {row['Fecha']} {row['Hora']}\n").add_to(
-                mapa)
-
+                          popup=f"Humedad: {row['Humedad']:.2f}\nFecha: {row['Fecha']} {row['Hora']}\n").add_to(mapa)
+        # Regresa el objeto mapa
         return mapa
 
-    def mostrar_head_map(self):
+    def crear_head_map(self):
+        # elecciono las columnas latitud y longitud del dataframe y las almacena en una variable llamada ubicaciones
         ubicaciones = self.df[['Latitud', 'Longitud']]
+        # convierto las columnas latitud y longitud a tipo flotante
         self.df['Latitud'] = self.df['Latitud'].astype(float)
         self.df['Longitud'] = self.df['Longitud'].astype(float)
+        # defino una URL
         url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        # defino un atributo para una capa de mosaico de Esri World Imagery
         attr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        # creo un objeto de mapa centrado en la media de las coordenadas de latitud y longitud del DataFrame y con un nivel de zoom inicial de 12
         mapa = folium.Map(location=[self.df["Latitud"].mean(), self.df["Longitud"].mean()], zoom_start=12,
                           control_scale=True, prefer_canvas=True)
+        # agrego la capa de mosaico al mapa utilizando la clase folium.TileLayer
         folium.TileLayer(tiles=url, attr=attr).add_to(mapa)
+        # agrego un grupo de marcadores al mapa utilizando la clase plugins.MarkerCluster y se pasa la variable ubicaciones como argumento
         plugins.MarkerCluster(ubicaciones).add_to(mapa)
+        # agrego un mapa de calor al mapa utilizando la clase plugins.HeatMap y se pasa la variable ubicaciones como argumento con un radio de 15
         mapa.add_child(plugins.HeatMap(ubicaciones, radius=15))
+        # se itera sobre cada fila del dataframe y se agrega un marcador circular al mapa en la ubicación especificada por las coordenadas de latitud y longitud de la fila
         for index, location_info in self.df.iterrows():
             lat = location_info["Latitud"]
             lon = location_info["Longitud"]
+            #  El marcador tiene un elemento emergente que muestra la temperatura ambiente y corporal de la fila
             popup = 'Temperatura ambiente:  <b>' + str(
                 location_info["Temperatura_Ambiente"]) + '</b></br>Temperatura corporal: <b>' + str(
                 location_info["Temperatura_Corporal"]) + '</b>'
             folium.CircleMarker(location=[lat, lon], radius=2, popup=folium.Popup(popup, max_width=200)).add_to(mapa)
+        # agrego un minimapa al mapa utilizando la clase plugins.MiniMap con una opción para alternar su visualización y se devuelve el objeto de mapa
         minimap = plugins.MiniMap(toggle_display=True)
         mapa.add_child(minimap)
+        #  Regresa el objeto mapa
         return mapa
 
     def save_map(self):
@@ -301,7 +357,7 @@ class MainWindow(QMainWindow):
         pass
 
     def about_dialog(self):
-        QMessageBox.about(self,"Acerca de ganaderia de presiciòn", "Podrian pagarle al informatico para que termine che")
+        QMessageBox.about(self,"Acerca de ganaderia de presiciòn", "En futuras actualizaciones estara disponible")
 
 if __name__ == "__main__":
     app = QApplication([])
