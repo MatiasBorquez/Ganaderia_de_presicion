@@ -1,5 +1,8 @@
 __pycache__/
-app/png/*
+App/png/*
+App/build/*
+App/dist/*
+*.spec
 .idea/
 .vs/
 .ipynb_checkpoints/

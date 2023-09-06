@@ -87,29 +87,37 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.initWindow()
 
+    # Inicializacion de la ventana
     def initWindow(self):
         self.setWindowTitle(self.tr("Ganaderia de Precisión"))
         self.showMaximized()
         self.setMinimumSize(1280, 800)
         self.setMaximumSize(1920, 1080)
+        # Establece la ventana en la maxima extencion
         self.setWindowState(Qt.WindowMaximized)
+        #  Qt.Window es una bandera de tipo que especifica que el widget es una ventana de nivel superior
         self.setWindowFlags(Qt.Window)
-        self.buttonUI()
+        self.UI()
 
-    def buttonUI(self):
+    def UI(self):
+        # barra de menu superior
 
+        # Crea boton para abrir un nuevo archivo
         open_act = QAction(QIcon("open.png"), "Abrir", self)
         open_act.setShortcut("Ctrl+O")
         open_act.triggered.connect(self.abrir_archivos)
 
+        # Crea boton para guardar el mapa actual
         save_act = QAction(QIcon("save.png"), "Guardar", self)
         save_act.setShortcut("Ctrl+S")
         save_act.triggered.connect(self.save_map)
 
+        # Crea boton para cerrar la la aplicacion
         close_act = QAction(QIcon("close.png"), "Cerrar", self)
         close_act.setShortcut("Ctrl+Q")
         close_act.triggered.connect(self.close)
 
+        # Crea boton de ayuda
         about_act = QAction(QIcon("about.png"), "Ayuda", self)
         about_act.triggered.connect(self.about_dialog)
 

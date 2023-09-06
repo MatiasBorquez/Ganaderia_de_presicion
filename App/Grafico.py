@@ -11,7 +11,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QFrame, QComboBox, QPushButton, QMessageBox, \
     QSpacerItem, QSizePolicy, QHBoxLayout, QWidget
 
-
+# Creacion de imagen de Temperatura del animal en función de la temperatura ambiente
 class Grafica_Temp_c_a(FigureCanvasQTAgg):
     def __init__(self,df):
         figure = plt.figure()
@@ -29,7 +29,7 @@ class Grafica_Temp_c_a(FigureCanvasQTAgg):
         self.grafica.set_ylabel('Temperatura del animal')
         self.grafica.set_title('Temperatura del animal en función de la temperatura ambiente')
 
-
+# Creacion de imagen de dispersion Temperatura ambiente y corporal promedio diara
 class Grafica_Temp_c_a_m(FigureCanvasQTAgg):
     def __init__(self, df):
         # Crear una figura
@@ -56,7 +56,7 @@ class Grafica_Temp_c_a_m(FigureCanvasQTAgg):
         ejes.set_title("Temperatura ambiente y corporal promedio diara")
         ejes.legend()
 
-
+# Creacion de imagen boxplot de fecha y Temperatura Ambiente
 class Grafica_Temp_c_a_bpa(FigureCanvasQTAgg):
     def __init__(self, df):
         # Crear una figura
@@ -80,6 +80,7 @@ class Grafica_Temp_c_a_bpa(FigureCanvasQTAgg):
         ejes.set_xlabel("Fecha")
         ejes.set_title("Temperatura Ambiente por Fecha")
 
+# Creacion de la grafica boxplot de Fecha y temperatura corporal
 class Grafica_Temp_c_a_bpc(FigureCanvasQTAgg):
     def __init__(self, df):
         # Crear una figura
