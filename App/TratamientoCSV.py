@@ -5,7 +5,7 @@ import numpy as np
 
 from math import radians, sin, cos, sqrt, atan, tan, atan2
 
-# Esta funcion es una implementación de la fórmula de Vincenty para calcular la distancia entre dos puntos
+# Esta funcion es una implementación de la fórmula de Vincenty para calcular la Distancia(m) entre dos puntos
 # en la superficie de un elipsoide, utilizando sus longitudes y latitudes.
 def vincenty(lon1, lat1, lon2, lat2):
     #  Convierte las longitudes y latitudes de grados a radianes
@@ -28,7 +28,7 @@ def vincenty(lon1, lat1, lon2, lat2):
     sinU2 = sin(U2)
     cosU2 = cos(U2)
 
-    # Se Inicia la iteración de la fórmula de Vincenty para calcular la distancia entre los dos puntos.
+    # Se Inicia la iteración de la fórmula de Vincenty para calcular la Distancia(m) entre los dos puntos.
     # lmbda se inicializa con el valor de L, que es la diferencia en longitud entre los dos puntos.
     lmbda = L
     # Inicia un bucle que se ejecutará hasta 100 veces. En cada iteración del bucle,
@@ -65,7 +65,7 @@ def vincenty(lon1, lat1, lon2, lat2):
         if abs(lmbda - lambda_prev) < 1e-12:
             break
 
-    # calculan los valores finales de uSq, A, B, deltaSigma y s. El valor de s es la distancia entre los dos puntos en metros
+    # calculan los valores finales de uSq, A, B, deltaSigma y s. El valor de s es la Distancia(m) entre los dos puntos en metros
     uSq = cosSqAlpha * (a ** 2 - b ** 2) / (b ** 2)
     A = 1 + uSq / 16384 * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq)))
     B = uSq / 1024 * (256 + uSq * (-128 + uSq * (74 - 47 * uSq)))
@@ -133,31 +133,34 @@ def Limpieza(df="C:/Users/matia/OneDrive/Documents/portafolio/Ganaderia_de_presi
     df = df.reset_index(drop=True)
     df.index = df.index + 1
 
-    #Calculo de la distancia recorrida por el animal
-    df.loc[:, "Distancia"] = [vincenty(lat1, lon1, lat2, lon2) for lat1, lon1, lat2, lon2 in zip(df['Latitud'], df['Longitud'], df['Latitud'].shift(), df['Longitud'].shift())]
-    df.loc[1, "Distancia"] = 0.0
+    #Calculo de la Distancia(m) recorrida por el animal
+    df.loc[:, "Distancia(m)"] = [vincenty(lat1, lon1, lat2, lon2) for lat1, lon1, lat2, lon2 in zip(df['Latitud'], df['Longitud'], df['Latitud'].shift(), df['Longitud'].shift())]
+    df.loc[1, "Distancia(m)"] = 0.0
     df['FechaHora'] = pd.to_datetime(df['Fecha'].astype(str) + ' ' + df['Hora'].astype(str))
 
     # Calcular la diferencia de tiempo entre filas consecutivas
     df['time_diff'] = df['FechaHora'].diff()
     df['time_diff'] = df['time_diff'].fillna(pd.Timedelta(0))
 
-    # Calcular la diferencia de distancia entre filas consecutivas
-    df['distance_diff'] = df['Distancia'].diff()
+    # Calcular la diferencia de Distancia(m) entre filas consecutivas
+    df['distance_diff'] = df['Distancia(m)'].diff()
     df['distance_diff'] = df['distance_diff'].fillna(0)
 
     # Calcular la diferencia de tiempo entre filas consecutivas en segundos
     df['time_diff_seconds'] = df['time_diff'].dt.total_seconds()
 
-    # Calcular la velocidad
-    df['Velocidad'] = (df['distance_diff'] / df['time_diff_seconds']).fillna(0)
+    # Calcular la Velocidad(m/s)
+    df['Velocidad(m/s)'] = (df['distance_diff'] / df['time_diff_seconds']).fillna(0)
 
     # convercion de m/s a km/h
-    df['Velocidad'] = df['Velocidad'] * 3.6
+    df['Velocidad(m/s)'] = df['Velocidad(m/s)'] * 3.6
+
+    # Convertir la Velocidad(m/s) en valor absoluto
+    df['Velocidad(m/s)'] = df['Velocidad(m/s)'].abs()
 
     return df
 
 # Funcion para mostrar solo los datos interesantes para el usuario
 def muestra_datos_usuario(df):
-    df_ui = df.loc[:,["Fecha", "Hora", "Temperatura_Ambiente", "Temperatura_Corporal", "Humedad", "Latitud", "Longitud", "Bateria", "Distancia", "Velocidad"]]
+    df_ui = df.loc[:,["Fecha", "Hora", "Temperatura_Ambiente", "Temperatura_Corporal", "Humedad", "Latitud", "Longitud", "Bateria", "Distancia(m)", "Velocidad(m/s)"]]
     return df_ui

@@ -139,10 +139,15 @@ class MainWindow(QMainWindow):
         help_menu.addAction(about_act)
 
         # Creacion de botones
-        self.btn_abrir = QPushButton("Abrir nuevo", self)
+        self.btn_abrir = QPushButton("Abrir uno", self)
         self.btn_abrir.setFixedSize(120, 50)
         self.btn_abrir.setIcon(QIcon("./png/folder.png"))
-        self.btn_abrir.clicked.connect(self.abrir_archivos)
+        self.btn_abrir.clicked.connect(self.abrir_archivo)
+
+        self.btn_abrir_varios = QPushButton("Abrir varios", self)
+        self.btn_abrir_varios.setFixedSize(120, 50)
+        self.btn_abrir_varios.setIcon(QIcon("./png/folder.png"))
+        self.btn_abrir_varios.clicked.connect(self.abrir_archivos)
 
         # Boton Para Mostrar todos los datos
         self.btn_tabla = QPushButton("Mostrar Datos", self)
@@ -190,6 +195,7 @@ class MainWindow(QMainWindow):
         vlay.addStretch()
         # se agregan los botones y un cuadro combinado al diseño vertical.
         vlay.addWidget(self.btn_abrir)
+        vlay.addWidget(self.btn_abrir_varios)
         vlay.addWidget(self.btn_tabla)
         vlay.addWidget(self.btn_grafico)
         vlay.addWidget(self.cobox_mapa)
@@ -226,10 +232,28 @@ class MainWindow(QMainWindow):
         self.view.load(QUrl.fromLocalFile(os.path.abspath(temp_map_file)))
 
     # Funcion para abrir los el archivo a tratar
-    def abrir_archivos(self):
+    def abrir_archivo(self):
         try:
             # Abre un cuadro de dialogo donde el usuario va a podes seleccionar el archivo de interes, ya sea exel o csv
             nombre, _ = QFileDialog.getOpenFileName(self, "Abrir Documento", "", "Exel (*.xls);; CSV (*.csv)")
+            # Verifica si se devuelve un archivo o no se selecciono nada
+            if nombre:
+                # Llama a la funcion que tratara los datos para poderlos mostrar
+                self.df = TratamientoCSV.Limpieza(nombre)
+                # Mostramos el nuevo mapa
+                self.cambiar_mapa()
+            else:
+                QMessageBox.critical(self, "Error", "No se pudo abrir el archivo")
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error", "Error en proceso de abrir Archivo")
+
+    def abrir_archivos(self):
+        try:
+            # Abre un cuadro de dialogo donde el usuario va a podes seleccionar el archivo de interes, ya sea exel o csv
+            nombres, _ = QFileDialog.getOpenFileNames(self, "Abrir Documento", "", "Exel (*.xls);; CSV (*.csv)")
+            if nombres:
+                for nombre in nombres:
+                    print(nombre)
             # Verifica si se devuelve un archivo o no se selecciono nada
             if nombre:
                 # Llama a la funcion que tratara los datos para poderlos mostrar
